@@ -202,7 +202,7 @@ func GetDriverById(id int) *driverModel {
 	return d
 }
 
-func AddDriver(data []byte) {
+func AddDriver(data []byte) int {
 	driver := &DriverJsonFileModel{}
 	json.Unmarshal(data, driver)
 	stmt, err := db.Prepare(`
@@ -214,6 +214,17 @@ func AddDriver(data []byte) {
 	checkErr(err, "drivers insert query prepare error")
 	_, err = stmt.Exec(driver.Name, driver.License_number)
 	checkErr(err, "drivers insert execution error")
+	rows, err := db.Query("SELECT max(id) from drivers")
+	defer rows.Close()
+	checkErr(err, "error selecting last driver id")
+	for rows.Next() {
+		var id int
+		err := rows.Scan(&id)
+		fmt.Println(id)
+		checkErr(err, "error fetching last driver id")
+		return id
+	}
+	return 0
 }
 
 func AddMetric(data []byte) error {
@@ -312,7 +323,6 @@ func DeleteMetric(id int) {
 }
 
 func GetMaxMetric(metricName string) int {
-	fmt.Println(metricName)
 	rows, err := db.Query("select max(value) from metrics where metric_name = ?", metricName)
 	checkErr(err, "get max metric error")
 	for rows.Next() {

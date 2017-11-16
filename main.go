@@ -21,8 +21,8 @@ func main() {
 
 	beego.Put("/driver", func(ctx *context.Context) {
 		b := ctx.Input.CopyBody(1024 * 1024 * 1024)
-		dbStuff.AddDriver(b)
-		sendSuccess(ctx)
+		id := dbStuff.AddDriver(b)
+		ctx.Output.JSON(id, false, false)
 	})
 
 	beego.Get("/driver/:id", func(ctx *context.Context) {
